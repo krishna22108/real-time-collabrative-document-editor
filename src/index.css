@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #5048e5;
+}
+
+@layer base {
+  body {
+    @apply font-sans selection:bg-primary/20;
+  }
+}
+
+/* TipTap Editor Styles */
+.ProseMirror {
+  @apply outline-none min-h-[800px];
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-slate-400 float-left h-0 pointer-events-none;
+}
+
+.ProseMirror h1 {
+  @apply text-3xl font-bold mb-4 mt-6;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl font-bold mb-3 mt-5;
+}
+
+.ProseMirror h3 {
+  @apply text-xl font-semibold mb-2 mt-4;
+}
+
+.ProseMirror p {
+  @apply mb-3;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply pl-6 mb-3;
+}
+
+.ProseMirror ul {
+  @apply list-disc;
+}
+
+.ProseMirror ol {
+  @apply list-decimal;
+}
+
+.ProseMirror li {
+  @apply mb-1;
+}
+
+.ProseMirror li p {
+  @apply mb-0;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-primary/30 pl-4 italic text-slate-600 my-4;
+}
+
+.ProseMirror code {
+  @apply bg-slate-100 px-1 py-0.5 rounded text-sm font-mono text-primary;
+}
+
+.ProseMirror pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-lg my-4 overflow-x-auto;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent p-0;
+}
+
+.ProseMirror a {
+  @apply text-primary underline;
+}
+
+.ProseMirror img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+.ProseMirror hr {
+  @apply my-6 border-slate-200;
+}
+
+.ProseMirror table {
+  @apply border-collapse w-full my-4;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  @apply border border-slate-200 p-2;
+}
+
+.ProseMirror th {
+  @apply bg-slate-50 font-semibold;
+}
+
+.ProseMirror mark {
+  @apply bg-yellow-200;
+}
+
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  @apply text-slate-400 float-left h-0 pointer-events-none;
+}
+
+.ProseMirror .task-list {
+  @apply list-none pl-0;
+}
+
+.ProseMirror .task-list-item {
+  @apply flex items-start gap-2 mb-2;
+}
+
+.ProseMirror .task-list-item input {
+  @apply mt-1;
+}
+
+/* Bubble Menu */
+.tippy-box {
+  @apply shadow-xl;
+}
+
+/* Focus styles */
+.ProseMirror:focus {
+  @apply outline-none;
+}
+
+.ProseMirror p {
+  line-height: 1.75;
+}
+
+.text-align-left {
+  text-align: left;
+}
+
+.text-align-center {
+  text-align: center;
+}
+
+.text-align-right {
+  text-align: right;
+}
+
+.text-align-justify {
+  text-align: justify;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
