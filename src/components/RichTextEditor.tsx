@@ -20,7 +20,6 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import Placeholder from '@tiptap/extension-placeholder';
 
-const FontSize = require('@tiptap/extension-font-size').default;
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
@@ -29,10 +28,10 @@ import {
   IndentDecrease, IndentIncrease, Subscript as SubscriptIcon,
   Superscript as SuperscriptIcon, CheckSquare, Table as TableIcon,
   Minus, Palette, FolderDown, MoreHorizontal, Copy,
-  RotateCcw, Search, X, ChevronDown, Trash2, TableCellsMerge,
+  RotateCcw, Search, X, ChevronDown, ChevronLeft, Trash2, TableCellsMerge,
   Columns as ColumnsIcon, Rows, Maximize2, Minimize2, FileText, Download,
   Printer, LayoutTemplate, Ruler, ArrowDownToLine, ZoomIn, ZoomOut,
-  MoreVertical, XCircle, FileUp
+  MoreVertical, XCircle, FileUp, Plus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -125,6 +124,8 @@ export default function RichTextEditor({
   const [searchMatches, setSearchMatches] = useState<number[]>([]);
   const [showZoomModal, setShowZoomModal] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const editor = useEditor({
     extensions: [
@@ -150,7 +151,6 @@ export default function RichTextEditor({
       TableCell,
       TableHeader,
       Placeholder.configure({ placeholder }),
-      FontSize,
     ],
     content,
     editable,
@@ -376,24 +376,26 @@ ${editor.getHTML()}
         <ChevronDown className="w-3 h-3 shrink-0" />
       </button>
       {showFontModal && (
-        <div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
-          {FONT_FAMILIES.map(font => (
-            <button
-              key={font.value}
-              onClick={() => {
-                setSelectedFont(font.value);
-                editor?.chain().focus().setFontFamily(font.value).run();
-                setShowFontModal(false);
-              }}
-              style={{ fontFamily: font.value }}
-              className={cn(
-                "w-full px-3 py-1.5 text-left text-sm hover:bg-slate-100",
-                selectedFont === font.value && "bg-primary/10 text-primary font-medium"
-              )}
-            >
-              {font.name}
-            </button>
-          ))}
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden" style={{ maxHeight: '250px' }}>
+          <div className="overflow-y-auto max-h-[250px]">
+            {FONT_FAMILIES.map(font => (
+              <button
+                key={font.value}
+                onClick={() => {
+                  setSelectedFont(font.value);
+                  editor?.chain().focus().setFontFamily(font.value).run();
+                  setShowFontModal(false);
+                }}
+                style={{ fontFamily: font.value }}
+                className={cn(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-slate-100 block",
+                  selectedFont === font.value && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                {font.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -409,23 +411,25 @@ ${editor.getHTML()}
         <ChevronDown className="w-3 h-3" />
       </button>
       {showSizeModal && (
-        <div className="absolute top-full left-0 mt-1 w-24 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
-          {FONT_SIZES.map(size => (
-            <button
-              key={size}
-              onClick={() => {
-                setSelectedSize(size);
-                editor?.chain().focus().updateAttributes('textStyle', { fontSize: `${size}px` }).run();
-                setShowSizeModal(false);
-              }}
-              className={cn(
-                "w-full px-3 py-1.5 text-left text-sm hover:bg-slate-100",
-                selectedSize === size && "bg-primary/10 text-primary font-medium"
-              )}
-            >
-              {size}
-            </button>
-          ))}
+        <div className="absolute top-full left-0 mt-1 w-20 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden" style={{ maxHeight: '250px' }}>
+          <div className="overflow-y-auto max-h-[250px]">
+            {FONT_SIZES.map(size => (
+              <button
+                key={size}
+                onClick={() => {
+                  setSelectedSize(size);
+                  editor?.chain().focus().updateAttributes('textStyle', { fontSize: `${size}px` }).run();
+                  setShowSizeModal(false);
+                }}
+                className={cn(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-slate-100 block",
+                  selectedSize === size && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -501,7 +505,7 @@ ${editor.getHTML()}
   return (
     <div className="flex flex-col h-full">
       {/* Main Toolbar */}
-      <div className="bg-white border-b border-slate-200 flex items-center gap-1 px-2 py-1 overflow-x-auto shrink-0 flex-wrap">
+      <div className="bg-white border-b border-slate-200 flex items-center gap-1 px-2 py-1 overflow-visible shrink-0 flex-wrap">
         <ToolbarSection>
           <MenuButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo (Ctrl+Z)">
             <Undo className="w-4 h-4" />
@@ -679,7 +683,32 @@ ${editor.getHTML()}
           </MenuButton>
         </ToolbarSection>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-1 border-r border-slate-200 pr-2">
+            <MenuButton onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} title="Previous Page">
+              <ChevronLeft className="w-4 h-4" />
+            </MenuButton>
+            <span className="text-xs text-slate-500 px-1">
+              <input
+                type="number"
+                value={currentPage}
+                onChange={(e) => {
+                  const page = parseInt(e.target.value) || 1;
+                  setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+                }}
+                className="w-8 text-center bg-transparent border-none focus:ring-0 p-0 text-xs text-slate-500"
+                min={1}
+                max={totalPages}
+              />
+              <span className="text-slate-400"> / {totalPages}</span>
+            </span>
+            <MenuButton onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} title="Next Page">
+              <ChevronDown className="w-4 h-4 rotate-90" />
+            </MenuButton>
+            <MenuButton onClick={() => { setTotalPages(totalPages + 1); setCurrentPage(totalPages + 1); }} title="Add Page">
+              <Plus className="w-4 h-4" />
+            </MenuButton>
+          </div>
           <span className="text-xs text-slate-500 px-2">{zoom}%</span>
           <MenuButton onClick={() => setZoom(Math.max(50, zoom - 10))} title="Zoom Out">
             <ZoomOut className="w-4 h-4" />

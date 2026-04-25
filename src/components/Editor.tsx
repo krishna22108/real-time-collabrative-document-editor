@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Share2, History, Sparkles, ChevronLeft, Cloud, Star, Send, Link2, Download, Users, UserPlus, Check, X } from 'lucide-react';
+import { FileText, Share2, History, Sparkles, ChevronLeft, Cloud, Star, Send, Link2, Download, Users, UserPlus, Check, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { generateSummary } from '../services/gemini';
 import { cn } from '../lib/utils';
@@ -138,6 +138,17 @@ export default function Editor() {
     saveDocument();
   };
 
+  const handleDelete = async () => {
+    if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      try {
+        await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+        navigate('/dashboard');
+      } catch (err) {
+        console.error('Error deleting document:', err);
+      }
+    }
+  };
+
   const downloadDocument = (format: 'html' | 'txt') => {
     let fileContent: string;
     let filename: string;
@@ -183,7 +194,7 @@ ${content}
     <div className="flex flex-col h-screen bg-[#f6f6f8]">
       <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-50">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+          <button onClick={() => navigate('/dashboard')} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
             <ChevronLeft className="w-5 h-5 text-slate-500" />
           </button>
           <div className="bg-primary p-1.5 rounded-lg text-white">
@@ -245,6 +256,13 @@ ${content}
           >
             <Share2 className="w-4 h-4" />
             <span>Share</span>
+          </button>
+          <button 
+            onClick={handleDelete}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Delete</span>
           </button>
           
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">

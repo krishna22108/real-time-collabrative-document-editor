@@ -10,7 +10,8 @@ import {
   History, 
   Bell, 
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  LogOut
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -28,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
     <div className="flex h-screen bg-[#f6f6f8] overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 border-r border-slate-200 bg-white hidden md:flex flex-col shrink-0">
-        <div className="p-6 flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="p-6 flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <ArrowUpDown className="w-6 h-6" />
           </div>
@@ -37,10 +38,10 @@ export default function Layout({ children }: LayoutProps) {
 
         <nav className="flex-1 px-4 space-y-1 mt-4">
           <NavItem 
-            to="/" 
+            to="/dashboard" 
             icon={<FileText className="w-5 h-5" />} 
             label="My Documents" 
-            active={location.pathname === '/'} 
+            active={location.pathname === '/dashboard'} 
           />
           <NavItem 
             to="/shared" 
@@ -68,6 +69,17 @@ export default function Layout({ children }: LayoutProps) {
               label="Settings" 
               active={location.pathname === '/settings'} 
             />
+            <button
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-sm font-medium">Log out</span>
+            </button>
           </div>
         </nav>
 

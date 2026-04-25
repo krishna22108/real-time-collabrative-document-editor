@@ -7,6 +7,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import dotenv from "dotenv";
 import dns from 'node:dns';
+import crypto from 'crypto';
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 dotenv.config();
@@ -25,7 +26,7 @@ function getLocalIP() {
 
 const localIP = getLocalIP();
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
+const MONGODB_URI =  "mongodb+srv://docs:project4@cluster4.1jt9jg4.mongodb.net/syncdocs";
 const DB_NAME = process.env.DB_NAME || "syncdocs";
 
 interface Document {
@@ -43,6 +44,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  password: string;
   avatar?: string;
   role?: string;
 }
@@ -71,8 +73,7 @@ let users: any;
 let documentShares: any;
 let pendingRequests: any;
 let useMongoDB = true;
-
-let sqliteDb: Database.Database;
+let sqliteDb: ReturnType<typeof Database>;
 
 async function connectMongoDB() {
   try {
@@ -231,6 +232,21 @@ async function startServer() {
     }
   });
 
+  app.delete("/api/documents/:id", async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      if (useMongoDB) {
+        await documents.deleteOne({ id });
+      } else {
+        sqliteDb.prepare("DELETE FROM documents WHERE id = ?").run(id);
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
   app.post("/api/documents/:id/share", async (req, res) => {
     const { id } = req.params;
     const { email, permission } = req.body;
@@ -258,6 +274,82 @@ async function startServer() {
       res.json({ success: true, shareLink: `${process.env.APP_URL || 'http://localhost:8080'}/doc/${id}` });
     } catch (error) {
       res.status(500).json({ error: "Failed to share document" });
+    }
+  });
+
+  // Auth endpoints
+  app.post("/api/auth/signup", async (req, res) => {
+    const { name, email, password } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Name, email and password are required" });
+    }
+
+    try {
+      const userId = crypto.randomUUID();
+      
+      if (useMongoDB) {
+        const existingUser = await users.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({ error: "Email already registered" });
+        }
+        
+        await users.insertOne({
+          id: userId,
+          name,
+          email,
+          password,
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
+          role: "user",
+          created_at: new Date()
+        });
+      }
+      
+      const token = Buffer.from(`${userId}:${email}`).toString("base64");
+      res.json({ success: true, token, user: { id: userId, name, email } });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create account" });
+    }
+  });
+
+  app.post("/api/auth/signin", async (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    try {
+      if (useMongoDB) {
+        const user = await users.findOne({ email, password });
+        if (!user) {
+          return res.status(401).json({ error: "Invalid email or password" });
+        }
+        
+        const token = Buffer.from(`${user.id}:${user.email}`).toString("base64");
+        res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email } });
+      } else {
+        res.status(500).json({ error: "Database not available" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to sign in" });
+    }
+  });
+
+  app.delete("/api/auth/user", async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    try {
+      if (useMongoDB) {
+        await users.deleteOne({ email });
+        res.json({ success: true, message: `User ${email} deleted` });
+      } else {
+        res.status(500).json({ error: "Database not available" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete user" });
     }
   });
 
